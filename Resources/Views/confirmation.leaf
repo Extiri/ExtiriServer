@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Account creation confirmation - Extiri</title>
+		<meta charset="UTF-8">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<meta name="description" content="Account creation confirmation page">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<style>
+			html {
+				font-family: ui-sans-serif,system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, apple color emoji, segoe ui emoji, Segoe UI Symbol, noto color emoji;
+				width: 100%;
+				background-color: #0F1729;
+				color: #B3C5EF;
+			}
+
+			body {
+				width: 100%;
+				height: 100%;
+				overflow-x: hidden;
+			}
+			
+			.center {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		Your account with email #(email) has been succesfully confirmed.
+	</body>
+</html>
