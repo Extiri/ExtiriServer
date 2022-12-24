@@ -2,7 +2,7 @@ import App
 import Vapor
 
 #warning("Increase version number on every update.")
-print("[Extiri Server] 1.0.12")
+print("[Extiri Server] 1.0.13")
 
 var env = try Environment.detect()
 

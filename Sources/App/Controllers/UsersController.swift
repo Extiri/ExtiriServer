@@ -19,7 +19,7 @@ struct UsersController: RouteCollection {
   }
   
   func isValid(req: Request) async throws -> HTTPStatus {
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     let token = try await tokensManager.extractToken()
     
     do {
@@ -31,9 +31,9 @@ struct UsersController: RouteCollection {
   }
   
   func delete(req: Request) async throws -> HTTPStatus {
-    let accountsManager = AccountsManager(request: req)
+    let accountsManager = AccountsManager(req: req)
     let login = try accountsManager.getLoginUser()
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     let _ = try await tokensManager.login(loginUser: LoginUser(email: login.email, password: login.password))
     
     let user = try await User.query(on: req.db)
@@ -70,7 +70,7 @@ struct UsersController: RouteCollection {
   
   func confirmWebsite(req: Request) async throws -> View {
     let token = req.parameters.get("token")!
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     let user = try await tokensManager.getUser(forToken: token)
     
     user.confirmed = true
@@ -82,7 +82,7 @@ struct UsersController: RouteCollection {
   
   func changePassword(req: Request) async throws -> View {
     let token = req.parameters.get("token")!
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     
     try await tokensManager.isNotExpired(token, ofType: .passwordChange)
     
@@ -137,7 +137,7 @@ Your password has been succesfully changed.
   
   func showPasswordChangePage(req: Request) async throws -> View {
     let token = req.parameters.get("token")!
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     
     try await tokensManager.isNotExpired(token, ofType: .passwordChangeRequest)
     
@@ -178,7 +178,7 @@ Your password has been succesfully changed.
   }
   
   func requestPasswordChange(req: Request) async throws -> HTTPStatus {
-    let accountsManager = AccountsManager(request: req)
+    let accountsManager = AccountsManager(req: req)
     let login = try accountsManager.getLoginUser()
     let user = try await accountsManager.getForCredentials(user: LoginUser(email: login.email, password: login.password))
     
@@ -328,16 +328,16 @@ Enjoy Extiri's products!
   }
   
   func logIn(req: Request) async throws -> TokenRepresentable {
-    let accountsManager = AccountsManager(request: req)
+    let accountsManager = AccountsManager(req: req)
     let login = try accountsManager.getLoginUser()
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     let id = try await tokensManager.login(loginUser: LoginUser(email: login.email, password: login.password))
     
     return TokenRepresentable(id: id)
   }
   
   func logOut(req: Request) async throws -> HTTPStatus {
-    let tokensManager = TokensManager(request: req)
+    let tokensManager = TokensManager(req: req)
     let tokenUUID = try await tokensManager.extractToken()
     try await tokensManager.isValidSessionToken(tokenUUID.uuidString)
     
@@ -354,10 +354,9 @@ Enjoy Extiri's products!
   }
   
   func aboutAccount(req: Request) async throws -> InfoUser {
-    let tokensManager = TokensManager(request: req)
+    try await AuthorizationManager.assertUserIsLoggedIn(req: req)
     
-    try await tokensManager.authorize()
-    
+    let tokensManager = TokensManager(req: req)
     let user = try await tokensManager.getUser()
     
     guard let userID = user.id else {

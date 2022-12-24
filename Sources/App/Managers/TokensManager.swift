@@ -33,64 +33,7 @@ final class TokensManager {
       throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)
     }
     
-    if try user.check(loginUser.password) {
-      if Date().timeIntervalSince(user.creationDate!) > Lifetimes.confirmationTime && !user.confirmed {
-        throw Abort(.unauthorized, reason: "Time for confirmation has passed. This account will be soon deleted.")
-      }
-      
-      if !user.confirmed {
-        throw Abort(.unauthorized, reason: "This account has not beed confirmed yet.")
-      }
-      
-      if user.deletionDate != nil {
-        try await user.restore(on: db)
-        
-        let mailManager = MailManager(to: user.email, request: request)
-        
-        let body = """
-Hello \(user.name),
-
-Your account has been used to succesfully login on Extiri.
-If it's not you, change your password.
-
-Your account has been restored by logging in.
-"""
-        
-        let error = await mailManager.send(subject: "Your account has been recovered - Extiri", body: body)
-        
-        if let error = error {
-          logger.report(error: error)
-        }
-      } else {
-        let mailManager = MailManager(to: user.email, request: request)
-        
-        let body = """
-Hello \(user.name),
-
-Your account has been used to succesfully login on Extiri.
-If it's not you, change your password.
-"""
-        
-        let error = await mailManager.send(subject: "New login from  your accout - Extiri", body: body)
-        
-        if let error = error {
-          logger.report(error: error)
-        }
-      }
-      
-      let token = Token(userID: user.id!, type: .session)
-      
-      try await token.create(on: db)
-      
-      try await request.queue.dispatch(
-        TokenDeletionJob.self,
-        token,
-        maxRetryCount: 5,
-        delayUntil: Lifetimes.getDate(for: Lifetimes.tokenLifetime)
-      )
-      
-      return token.id!
-    } else {
+    if !(try user.check(loginUser.password)) {
       let mailManager = MailManager(to: user.email, request: request)
       
       let body = """
@@ -109,6 +52,64 @@ If it's not you, change your password.
       waitRandomTime()
       throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)
     }
+    
+    if Date().timeIntervalSince(user.creationDate!) > Lifetimes.confirmationTime && !user.confirmed {
+      throw Abort(.unauthorized, reason: "Time for confirmation has passed. This account will be soon deleted.")
+    }
+    
+    if !user.confirmed {
+      throw Abort(.unauthorized, reason: "This account has not beed confirmed yet.")
+    }
+    
+    /// Check if user's account was deleted so it can be recovered if it was deleted.
+    if user.deletionDate != nil {
+      try await user.restore(on: db)
+      
+      let mailManager = MailManager(to: user.email, request: request)
+      
+      let body = """
+Hello \(user.name),
+
+Your account has been used to succesfully login on Extiri.
+If it's not you, change your password.
+
+Your account has been restored by logging in.
+"""
+      
+      let error = await mailManager.send(subject: "Your account has been recovered - Extiri", body: body)
+      
+      if let error = error {
+        logger.report(error: error)
+      }
+    } else {
+      let mailManager = MailManager(to: user.email, request: request)
+      
+      let body = """
+Hello \(user.name),
+
+Your account has been used to succesfully login on Extiri.
+If it's not you, change your password.
+"""
+      
+      let error = await mailManager.send(subject: "New login from  your accout - Extiri", body: body)
+      
+      if let error = error {
+        logger.report(error: error)
+      }
+    }
+    
+    let token = Token(userID: user.id!, type: .session)
+    
+    try await token.create(on: db)
+    
+    try await request.queue.dispatch(
+      TokenDeletionJob.self,
+      token,
+      maxRetryCount: 5,
+      delayUntil: Lifetimes.getDate(for: Lifetimes.tokenLifetime)
+    )
+    
+    return token.id!
   }
   
   /// Checks if user credentials are valid.
@@ -150,15 +151,6 @@ If it's not you, change your password.
     }
   }
   
-  /// Authorizes access using a Bearer token.
-  func authorize() async throws {
-    guard let bearer = request.headers.bearerAuthorization else {
-      throw Abort(.unauthorized, reason: "A Bearer Authorization HTTP header with token is required.")
-    }
-    
-    try await isValidSessionToken(bearer.token)
-  }
-  
   /// Checks if token is valid (not expired, non-existent, not a session token).
   func isValidSessionToken(_ token: String) async throws {
     guard let id = UUID(uuidString: token) else {
@@ -184,7 +176,7 @@ If it's not you, change your password.
       throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)
     }
     
-    if Date().timeIntervalSince(token.creationDate ?? Date()) < Lifetimes.tokenLifetime {
+    if Lifetimes.hasTimePassed(for: token.creationDate!, with: Lifetimes.tokenLifetime) {
       if token.type != .session {
         waitRandomTime()
         throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)
@@ -269,7 +261,7 @@ If it's not you, change your password.
     }
   }
   
-  init(request: Request) {
+  init(req: Request) {
     self.request = request
   }
 }

@@ -28,12 +28,10 @@ struct SnippetsController: RouteCollection {
   }
   
   func createSnippet(req: Request) async throws -> Snippet {
-    let tokensManager = TokensManager(request: req)
+    try await AuthorizationManager.assertUserIsLoggedIn(req: req)
     
-    try await tokensManager.authorize()
-    
+    let tokensManager = TokensManager(req: req)
     let user = try await tokensManager.getUser()
-    
     let snippetContent = try req.content.decode(SnippetContent.self)
     
     if !EnvironmentVariables.languages.contains(snippetContent.language) {
@@ -129,9 +127,9 @@ struct SnippetsController: RouteCollection {
   }
   
   func deleteSnippet(req: Request) async throws -> HTTPStatus {
-    let tokensManager = TokensManager(request: req)
+    try await AuthorizationManager.assertUserIsLoggedIn(req: req)
     
-    try await tokensManager.authorize()
+    let tokensManager = TokensManager(req: req)
     
     let snippetID = req.parameters.get("snippet_id")!
     

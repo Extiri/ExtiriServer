@@ -90,7 +90,7 @@ final class SnippetResolver {
     promise.completeWithTask {
       let token = arguments.token
       
-      let tokensManager = TokensManager(request: request)
+      let tokensManager = TokensManager(req: request)
       
       try await tokensManager.isValidSessionToken(token)
       
@@ -139,7 +139,7 @@ final class SnippetResolver {
       let token = arguments.token
       let snippetID = arguments.id
       
-      let tokensManager = TokensManager(request: request)
+      let tokensManager = TokensManager(req: request)
       
       try await tokensManager.isValidSessionToken(token)
       

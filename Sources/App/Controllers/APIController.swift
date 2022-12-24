@@ -11,17 +11,17 @@ struct APIController: RouteCollection {
   }
   
   func deleteKey(req: Request) async throws -> HTTPStatus {
-    let tokensManager = TokensManager(request: req)
-    try await tokensManager.authorize()
+    try await AuthorizationManager.assertUserIsLoggedIn(req: req)
+    
     let apiManager = APIManager(request: req)
     try await apiManager.delete()
     return .ok
   }
   
   func requestKey(req: Request) async throws -> [String: String] {
-    let tokensManager = TokensManager(request: req)
+    try await AuthorizationManager.assertUserIsLoggedIn(req: req)
     
-    try await tokensManager.authorize()
+    let tokensManager = TokensManager(req: req)
     
     let user = try await tokensManager.getUser()
     let apiManager = APIManager(request: req)

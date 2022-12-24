@@ -43,7 +43,7 @@ final class AccountsManager {
     }
     
     if try user.check(loginUser.password) {
-      if Date().timeIntervalSince(user.creationDate!) > Lifetimes.confirmationTime && !user.confirmed {
+      if Lifetimes.hasTimePassed(for: user.creationDate!, with: Lifetimes.confirmationTime) && !user.confirmed {
         throw Abort(.unauthorized, reason: "Time for confirmation has passed. This account will be soon deleted.")
       }
       
@@ -83,7 +83,7 @@ final class AccountsManager {
     self.request = nil
   }
   
-  init(request: Request) {
+  init(req: Request) {
     self.request = request
     self.application = request.application
   }
