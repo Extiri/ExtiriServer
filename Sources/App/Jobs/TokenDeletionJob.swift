@@ -1,12 +1,13 @@
 import Vapor
 import Queues
 import Foundation
+import Fluent
 
 struct TokenDeletionJob: AsyncJob {
 	typealias Payload = UUID
 	
 	func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-    let token = Token.query(on: context.application.db)
+    let token = try await Token.query(on: context.application.db)
       .filter(\.$id == payload)
       .first()
     

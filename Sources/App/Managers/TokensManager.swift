@@ -262,6 +262,6 @@ If it's not you, change your password.
   }
   
   init(req: Request) {
-    self.request = request
+    self.request = req
   }
 }

@@ -84,7 +84,7 @@ final class AccountsManager {
   }
   
   init(req: Request) {
-    self.request = request
-    self.application = request.application
+    self.request = req
+    self.application = req.application
   }
 }

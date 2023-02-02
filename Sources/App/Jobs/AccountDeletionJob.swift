@@ -1,12 +1,13 @@
 import Vapor
 import Queues
 import Foundation
+import Fluent
 
 struct AccountDeletionJob: AsyncJob {
 	typealias Payload = UUID
 	
 	func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-    let account = User.query(on: context.application.db)
+    let account = try await User.query(on: context.application.db)
       .filter(\.$id == payload)
       .first()
     
@@ -18,7 +19,7 @@ struct AccountDeletionJob: AsyncJob {
 		if !account.confirmed || account.deletionDate != nil {
 			let accountManagers = AccountsManager(application: context.application)
 			
-			try await accountManagers.delete(user: payload)
+			try await accountManagers.delete(user: account)
       context.logger.info("Deleted account.")
 		}
     
