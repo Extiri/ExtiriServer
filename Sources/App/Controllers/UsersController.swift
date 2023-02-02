@@ -52,7 +52,7 @@ struct UsersController: RouteCollection {
     
     try await req.queue.dispatch(
       AccountDeletionJob.self,
-      user,
+      user.id ?? UUID(),
       maxRetryCount: 5,
       delayUntil: Lifetimes.getDate(for: Lifetimes.accountDeletionTime)
     )
@@ -169,7 +169,7 @@ Your password has been succesfully changed.
     
     try await req.queue.dispatch(
       TokenDeletionJob.self,
-      changeToken,
+      changeToken.id ?? UUID(),
       maxRetryCount: 5,
       delayUntil: Lifetimes.getDate(for: Lifetimes.passwordChangeTime)
     )
@@ -215,7 +215,7 @@ If it is not you who requested the password change, change the password yourself
     
     try await req.queue.dispatch(
       TokenDeletionJob.self,
-      token,
+      token.id ?? UUID(),
       maxRetryCount: 5,
       delayUntil: Lifetimes.getDate(for: Lifetimes.passwordChangeTime)
     )
@@ -296,7 +296,7 @@ Enjoy Extiri's products!
     
     try await req.queue.dispatch(
       AccountDeletionJob.self,
-      newUser,
+      newUser.id ?? UUID(),
       maxRetryCount: 5,
       delayUntil: Lifetimes.getDate(for: Lifetimes.confirmationTime)
     )

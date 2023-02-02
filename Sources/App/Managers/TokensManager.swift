@@ -104,7 +104,7 @@ If it's not you, change your password.
     
     try await request.queue.dispatch(
       TokenDeletionJob.self,
-      token,
+      token.id ?? UUID(),
       maxRetryCount: 5,
       delayUntil: Lifetimes.getDate(for: Lifetimes.tokenLifetime)
     )

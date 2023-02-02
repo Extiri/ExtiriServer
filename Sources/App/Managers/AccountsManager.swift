@@ -75,7 +75,7 @@ final class AccountsManager {
       try await snippet.delete(on: db)
     }
     
-    try await user.delete(on: db)
+    try await user.delete(force: true, on: db)
   }
   
   init(application: Application) {

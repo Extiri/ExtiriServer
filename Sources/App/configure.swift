@@ -8,7 +8,6 @@ import JWT
 import Gatekeeper
 import GraphQLKit
 import GraphiQLVapor
-import FluentSQLiteDriver
 
 public func configure(_ app: Application) throws {
   print("Is hiding new snippets: \(EnvironmentVariables.state.shouldHideNewSnippets == "true")")
