@@ -29,9 +29,13 @@ final class User: Model, Codable {
   var deletionDate: Date?
   
   func check(_ password: String) throws -> Bool {
-    let result = try Bcrypt.verify(password + EnvironmentVariables.secrets.salt, created: hash)
-    waitRandomTime()
-    return result
+    do {
+      let result = try Bcrypt.verify(password + EnvironmentVariables.secrets.salt, created: hash)
+      waitRandomTime()
+      return result
+    } catch {
+      throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)
+    }
   }
   
   func changePassword(password: String) throws {

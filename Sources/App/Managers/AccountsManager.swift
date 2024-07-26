@@ -59,8 +59,10 @@ final class AccountsManager {
   }
   
   func delete(user: User) async throws {
+    guard let userId = user.id else { throw Abort(.notFound, reason: "This user doesn't exist.") }
+    
     let tokens = try await Token.query(on: db)
-      .filter(\.$userID == user.id ?? UUID())
+      .filter(\.$userID == userId)
       .all()
     
     for token in tokens {
@@ -68,7 +70,7 @@ final class AccountsManager {
     }
     
     let snippets = try await Snippet.query(on: db)
-      .filter(\.$creator == user.id ?? UUID())
+      .filter(\.$creator == userId)
       .all()
     
     for snippet in snippets {

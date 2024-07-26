@@ -32,6 +32,11 @@ struct SnippetsController: RouteCollection {
     
     let tokensManager = TokensManager(req: req)
     let user = try await tokensManager.getUser()
+    
+    if 10 <= user.strikes {
+      throw Abort(.unauthorized, reason: "This account has been suspended and is unable to create new snippets.")
+    }
+    
     let snippetContent = try req.content.decode(SnippetContent.self)
     
     if !EnvironmentVariables.languages.contains(snippetContent.language) {

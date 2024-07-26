@@ -40,30 +40,22 @@ struct UsersController: RouteCollection {
       .filter(\.$email == login.email)
       .first()!
     
+    let accountManagers = AccountsManager(application: req.application)
+    try await accountManagers.delete(user: user)
+    
     let mailManager = MailManager(to: user.email, request: req)
     
     let body = """
   Hello \(user.name),
   
-  Your account will be deleted within 30 days.
-  I'm sad that you are leaving us. You can still
-  recover your account by logging in your account.
+  Your account has been deleted.
   """
-    
-    try await req.queue.dispatch(
-      AccountDeletionJob.self,
-      user.id ?? UUID(),
-      maxRetryCount: 5,
-      delayUntil: Lifetimes.getDate(for: Lifetimes.accountDeletionTime)
-    )
     
     let error = await mailManager.send(subject: "Your account has been deleted - Extiri", body: body)
     
     if let error = error {
       req.logger.report(error: error)
     }
-    
-    try await user.delete(on: req.db)
     
     return .ok
   }
@@ -271,6 +263,8 @@ If it is not you who requested the password change, change the password yourself
       try await newUser.create(on: req.db)
     }
     
+    guard let newUserId = newUser.id else { throw Abort(.internalServerError, reason: "Something went wrong with account creation.") }
+    
     let token = Token(userID: newUser.id!, type: .confirmation)
     
     try await token.create(on: req.db)
@@ -296,8 +290,8 @@ Enjoy Extiri's products!
     
     try await req.queue.dispatch(
       AccountDeletionJob.self,
-      newUser.id ?? UUID(),
-      maxRetryCount: 5,
+      newUserId,
+      maxRetryCount: 8,
       delayUntil: Lifetimes.getDate(for: Lifetimes.confirmationTime)
     )
     
