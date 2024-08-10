@@ -176,7 +176,7 @@ If it's not you, change your password.
       throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)
     }
     
-    if Lifetimes.hasTimePassed(for: token.creationDate!, with: Lifetimes.tokenLifetime) {
+    if !Lifetimes.hasTimePassed(for: token.creationDate!, with: Lifetimes.tokenLifetime) {
       if token.type != .session {
         waitRandomTime()
         throw Abort(.unauthorized, reason: TokensManager.WONG_CREDENTIALS_ERROR_MESSAGE)

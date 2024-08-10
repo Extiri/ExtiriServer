@@ -20,7 +20,7 @@ final class User: Model, Codable {
   var confirmed: Bool
   
   @Field(key: "strikes")
-  var strikes: Int
+  var strikes: UInt8
   
   @Timestamp(key: "creation_date", on: .create)
   var creationDate: Date?

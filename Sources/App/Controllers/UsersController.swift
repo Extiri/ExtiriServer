@@ -21,7 +21,6 @@ struct UsersController: RouteCollection {
   func isValid(req: Request) async throws -> HTTPStatus {
     let tokensManager = TokensManager(req: req)
     let token = try await tokensManager.extractToken()
-    
     do {
       try await tokensManager.isValidSessionToken(token.uuidString)
       return .ok
